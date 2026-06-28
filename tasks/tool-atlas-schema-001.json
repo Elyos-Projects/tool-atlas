@@ -1,0 +1,32 @@
+{
+  "id": "tool-atlas-schema-001",
+  "title": "Define atlas entry JSON Schema (+ CI validation)",
+  "project": "tool-atlas",
+  "type": "design-spec",
+  "lane": "donated",
+  "priority": "high",
+  "domain": ["education", "practical-skills", "open-reference", "accessibility"],
+  "riskTier": "low",
+  "urgent": false,
+  "deliverable": "pr",
+  "tokenEstimate": "medium",
+  "status": "open",
+  "context": "tool-atlas is an open CC-BY reference atlas of tools. Every entry must be uniformly machine-readable so it can power a static-site explorer, courses, and search. Safety must be enforceable as data, not styling, because power-tool/injury-risk entries are medium risk and must lead with hazards and PPE.",
+  "objective": "Define and publish a versioned JSON Schema for an atlas entry, wired into CI via AJV, that captures all entry fields and enforces the safety and license invariants.",
+  "acceptanceCriteria": [
+    "Schema covers name, aliases, category, purpose, whenToUse, technique.steps, safety{riskTier,hazards,ppe,requiredCompetence,leadWithSafety}, commonMistakes, careAndMaintenance, relatedTools, relatedTasks, media, sources, license, version, lastReviewed, reviewers.",
+    "Each media item requires a license field; the schema is invalid without it.",
+    "riskTier='medium' requires non-empty safety.hazards and safety.ppe.",
+    "AJV validation runs in CI and fails on any invalid entry.",
+    "pnpm build && pnpm test && pnpm lint pass."
+  ],
+  "resources": [
+    "C:\\code\\elyos\\governance\\proposals\\tool-atlas.md",
+    "C:\\code\\elyos\\packages\\schema\\src\\schemas.ts",
+    "C:\\code\\elyos\\planning\\projects\\tool-atlas\\PLAN.md"
+  ],
+  "output": "A merged PR adding the atlas entry JSON Schema, AJV-based validation script, and CI wiring, with the schema documented in the repo.",
+  "requestor": "",
+  "verifiedNeed": false,
+  "outputLicense": "MIT"
+}
