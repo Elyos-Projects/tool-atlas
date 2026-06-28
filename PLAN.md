@@ -1,6 +1,11 @@
 # PLAN.md — tool-atlas
 
-> Status: Draft · Version: 0.1.0 · Last updated: 2026-06-28 · Owner: TBD (maintainer) · Lane: donated
+> Status: Draft · Version: 0.2.0 · Last updated: 2026-06-28 · Owner: TBD (maintainer) · Lane: donated
+
+> **Ownership gate.** The Owner/Maintainer is currently **TBD — TO BE SECURED**. A named
+> maintainer **must be filled before M0 exit** (this is a hard M0 gate, not a nicety); target date
+> to name the Owner is **2026-07-12**. Until then the schema, style/safety guides, and Definition
+> of Shipped have no accountable owner and M0 cannot be declared done.
 
 ## Executive summary
 
@@ -82,14 +87,17 @@ Outcome-based, beneficiary-centric. Vanity metrics (raw pageviews, star counts) 
 | --- | --- | --- |
 | Peer-reviewed, published entries | 0 | 25+ (10 seed hand tools + 15 across categories) |
 | Education/makerspace partners adopting the atlas | 0 | ≥ 1 with written adoption + use report |
-| Beneficiary-reported usefulness (partner survey, "helped me do the task safely") | n/a | ≥ 80% of respondents agree |
+| Beneficiary-reported usefulness (partner survey, "helped me do the task safely") | n/a | ≥ 80% agree, with **≥ 20 respondents** over a **rolling 90-day window** post-adoption (target ≥ 30% partner response rate) |
 | Medium-risk entries shipped with completed safety review | 0 | 100% of medium-risk entries (no exceptions) |
 | Entries with recorded media provenance + valid license | n/a | 100% (hard gate) |
 | Downstream reuse (forks, course/app integrations citing CC-BY) | 0 | ≥ 1 documented external reuse |
 | Schema-valid machine-readable dataset published | none | 1 versioned CC-BY dataset release |
 
 Note: the partner-adoption and beneficiary-usefulness metrics are the **true outcome measures**;
-entry count and dataset release are necessary enablers, not the goal in themselves.
+entry count and dataset release are necessary enablers, not the goal in themselves. The
+usefulness measure depends on the beneficiary survey instrument — currently backlogged as
+**tool-atlas-research-506** (TASKS.md) and a prerequisite for reporting this metric; the sample
+size (≥ 20) and 90-day window above are the floor that survey must be designed to hit.
 
 ## Scope
 
@@ -123,9 +131,10 @@ structured, reviewed corpus; the static site is a renderer over it.
 **Components**
 1. **Schema package** — a versioned JSON Schema for an atlas entry, validated in CI (reuse the
    project's TypeScript/ESM + AJV conventions, mirroring `packages/schema`).
-2. **Content corpus** — one file per entry. Source of truth is structured **JSON** (or Markdown
-   with YAML front-matter compiled to JSON); prose fields are authored Markdown. Organized by
-   category.
+2. **Content corpus** — one file per entry. The **authoring format (structured JSON vs Markdown
+   with YAML front-matter compiled to JSON) is decided in M0**, before any seed authoring, because
+   the schema, validation tooling, and authoring workflow all depend on it; prose fields are
+   authored Markdown either way. Organized by category.
 3. **Media + provenance store** — original SVG/PNG diagrams and any openly-licensed imagery, each
    paired with a provenance record (source, author, license, URL, retrieval date).
 4. **Static-site generator (SSG)** — renders validated entries into an accessible, browsable site
@@ -135,28 +144,49 @@ structured, reviewed corpus; the static site is a renderer over it.
    presence, "medium-risk requires safety section" rule) run in CI.
 
 **Tech stack.** TypeScript, ESM, pnpm workspaces. AJV for schema validation. A lightweight,
-well-supported SSG (e.g. Astro or Eleventy — decision deferred, see Open questions) chosen for
-accessibility, static output, and low maintenance. Code MIT-licensed; content CC-BY-4.0.
+well-supported SSG (Astro vs Eleventy vs other) chosen for accessibility, static output, and low
+maintenance. The SSG choice is **resolved by an M0/M1 spike and must be decided before the M2
+site build begins** (see Open questions and Roadmap) — it is not left open into M2. Code
+MIT-licensed; content CC-BY-4.0.
 
 **Data model (entry, abridged).**
 ```
 id, name, aliases[], category, subcategory,
 purpose, whenToUse, alternatives[],
 technique: { steps[], tips[] },
-safety: { riskTier, hazards[], ppe[], requiredCompetence, leadWithSafety:boolean },
+safety: { riskTier: enum("low"|"medium"|"high"), hazards[], ppe[], requiredCompetence,
+          leadWithSafety:boolean, escalationReason? },
 commonMistakes[], careAndMaintenance,
 relatedTools[], relatedTasks[],
-media: [{ file, type, license, author, sourceUrl, provenanceNote }],
+media: [{ file, type, license: enum(<allow-list>), author, sourceUrl, sourceVerified:boolean,
+          isOriginal:boolean, provenanceNote }],
 sources: [{ title, url, accessed, note }],
 license, version, lastReviewed, reviewers[]
 ```
 
+`safety.riskTier` is a **closed enum** (`low | medium | high`). The schema encodes the
+medium/high boundary and **auto-escalates to `high` any entry touching gas, mains/permanent
+electrical, or structural work** (such entries either carry `riskTier:"high"` + an
+`escalationReason` and route to expert/defer-to-pro handling, or are reframed away from
+high-stakes DIY). The medium/high cut-line lives in the safety-guide **rubric, which is a hard
+predecessor of the schema task** (the schema cannot be finalized until the rubric defines the
+boundary it must encode — see Quality gates and TASKS.md sequencing).
+
+`media[].license` is **constrained to a closed allow-list** of acceptable values (see Licensing);
+`isOriginal` defaults true, and any non-original asset additionally requires `sourceVerified:true`
+recording a human source-URL check.
+
 **Key decisions**
 - **Structured-first, prose-inside.** Authoring targets the schema so every entry is uniformly
   machine-readable; prose lives in defined fields rather than free-form pages.
-- **Safety as data, not styling.** `riskTier` and `safety.leadWithSafety` are data fields the SSG
-  and CI enforce, so the hazard-first treatment for medium-risk tools cannot be skipped.
-- **License field is mandatory** on every media asset; CI fails an entry that lacks it.
+- **Authoring format decided in M0.** JSON vs Markdown-with-front-matter is settled before seed
+  authoring because schema shape, validation tooling, and the authoring workflow all hang off it.
+- **Safety as data, not styling.** `riskTier` (closed enum) and `safety.leadWithSafety` are data
+  fields the SSG and CI enforce, so the hazard-first treatment for medium-risk tools cannot be
+  skipped; gas/mains/structural content auto-escalates to `high`.
+- **License is mandatory and allow-listed.** Every media asset carries a `license` drawn from a
+  closed allow-list; CI fails an entry that lacks it or uses a value off the list, and any
+  non-original asset must record a verified source URL.
 - **Bounded tasks.** Each entry is one task with a fixed template, enabling consistent fan-out.
 
 ## Data, licensing & compliance
@@ -167,11 +197,14 @@ license, version, lastReviewed, reviewers[]
   authoritative sources (manufacturer safety guidance, OSHA/HSE-type public guidance, established
   trade references), which are **cited but not copied**. No paraphrase-laundering of copyrighted
   how-to text.
-- **Media (diagrams/images):** **original artwork by default.** Any non-original asset must be
-  verifiably under a license that permits reuse and derivatives compatible with CC-BY (e.g.
-  CC0, CC-BY, CC-BY-SA only if isolated and clearly attributed, or public domain). **No
-  "found on the web" images.** Every asset carries a provenance record: source, author, license,
-  URL, retrieval date. CI rejects entries with media missing a license field.
+- **Media (diagrams/images):** **original artwork is the norm and the default** (`isOriginal:true`).
+  Any non-original asset must carry a `license` drawn from a **closed allow-list enforced in the
+  schema** — the only acceptable values are `original`, `CC0`, `CC-BY-4.0`, `CC-BY-SA-4.0` (only if
+  isolated and clearly attributed), and `public-domain`; anything off the list (including blank or
+  "unknown") fails schema validation. In addition, **every non-original asset requires mandatory
+  human verification of its source URL** (recorded as `sourceVerified:true`) — a CI presence check
+  is not sufficient on its own. **No "found on the web" images.** Every asset carries a provenance
+  record: source, author, license, URL, retrieval date.
 - **Output license:** content released under **CC-BY-4.0**; code under **MIT**. Each published
   entry and the dataset release state the license explicitly with attribution requirements.
 - **Attribution requirements:** CC-BY requires downstream users to credit tool-atlas; the site and
@@ -188,19 +221,33 @@ license, version, lastReviewed, reviewers[]
 
 **Risk tier.** Project baseline **low**; individual entries are **medium** when they cover power
 tools or injury-risk activities (saws, grinders, electrical, ladders, anything with a
-non-trivial harm path). The schema's `riskTier` field records this per entry. No entries are
-expected to be `high` (which would require credentialed expert sign-off before merge); if a
-proposed entry edges into high-stakes territory (e.g. mains electrical, gas, structural), it is
-either reframed to "defer to a qualified professional" or escalated for expert review.
+non-trivial harm path). The schema's `riskTier` field is a **closed enum (`low | medium | high`)**
+and records this per entry. Anything touching **gas, mains/permanent electrical, or structural
+work auto-escalates to `high`** (credentialed expert sign-off before merge), and is either reframed
+to "defer to a qualified professional" or escalated for expert review. The written **medium/high
+rubric is a hard predecessor of the schema task**: the schema encodes the boundary the rubric
+defines, so the rubric must be merged first (reflected in TASKS.md dependencies).
+
+**Per-entry quality floor (beyond schema-validity).** Schema validity is necessary but not
+sufficient. Every entry must additionally clear:
+- **Minimum-citation rule:** ≥ 2 authoritative, independent cited sources for technique/safety
+  claims (medium/high-risk entries: ≥ 1 must be manufacturer or OSHA/HSE-type safety guidance).
+- **Reviewer checklist:** a written editorial checklist (clarity, completeness, citation quality,
+  original-media/provenance, hazard-first ordering where applicable) that the reviewer signs off
+  item-by-item — not a free-form "looks good."
+- **Audit/sampling rate:** the maintainer re-audits a **rolling ≥ 10% sample** of published entries
+  against the checklist each cycle to catch drift across fan-out authors.
+These apply to **all authoring tasks** in TASKS.md.
 
 **Required review before "done":**
-- **Every entry:** editorial review against the style guide (clarity, completeness, schema
-  validity, citation quality, original-media check) by a maintainer/reviewer other than the author.
+- **Every entry:** editorial review against the style guide and the reviewer checklist (clarity,
+  completeness, schema validity, citation floor, original-media check) by a maintainer/reviewer
+  other than the author.
 - **Medium-risk entries:** **additional safety review** by a reviewer competent in that tool/area,
   confirming the hazard-first ordering, correct PPE, accurate technique, and that no unsafe shortcut
   is implied. This review is mandatory and recorded in `reviewers[]`/`lastReviewed`.
-- **License/provenance gate:** automated (CI) presence checks + human spot-verification of any
-  non-original asset's license.
+- **License/provenance gate:** automated (CI) presence + allow-list checks + **mandatory** human
+  source-URL verification of every non-original asset's license (not just a spot-check).
 
 **Definition of Shipped (project).** Per the proposal: a published, browsable atlas with a
 growing, peer-reviewed set of entries, **adopted by at least one education/makerspace partner**,
@@ -223,14 +270,31 @@ saw, level, utility knife, pliers, wrench, drill, chisel) — **drill** routed t
 medium-risk safety path; glossary + initial cross-link graph in place; ≥ 1 partner outreach packet
 sent and ≥ 1 partner conversation logged.
 
+**Post-M1 go/no-go gate (partner check).**
+Before any M2 site-build work starts: **≥ 1 partner must be at least verbally committed** to
+adopting the atlas. If that bar is met, proceed to M2 as planned. If **no partner** is committed,
+the project does **not** halt but pivots to a **fallback "delivered" definition**: ship the
+schema-valid corpus + the **downloadable CC-BY dataset** (the reusable artifact) as the delivered
+outcome, defer the full hosted-site build until a partner materializes, and keep outreach as the
+active critical-path task. This keeps "delivered, not merged" honest when partner adoption — the
+true outcome measure — has not yet landed.
+
 **M2 — Static-site explorer & dataset release.**
-Goal: beneficiaries can actually browse and reuse it.
+Goal: beneficiaries can actually browse and reuse it. **Gated on the post-M1 go/no-go above** and
+on the SSG choice already being decided (M0/M1 spike).
 Exit criteria: SSG renders all entries into an accessible, searchable site (WCAG-AA aimed);
 cross-link graph navigable; first versioned **CC-BY dataset** published with provenance; live URL.
 Depends on M1 corpus and M0 schema.
 
 **M3 — Safety-track hardening & power-tool expansion.**
 Goal: prove the medium-risk pipeline at scale.
+Throughput assumption / SLA: the safety-review gate is a known bottleneck — plan on a committed
+safety reviewer turning around **≤ N entries/week (target ≥ 3) within a 5-business-day SLA**; if
+reviewer capacity falls short, medium-risk authoring is throttled to match rather than allowed to
+queue unreviewed. **Electrical cut-line:** M3 covers only low-voltage/cord-and-plug and
+battery-tool electrical content; **all mains/permanent-wiring, gas, and structural content is
+out of scope here, auto-escalates to `high`, and defers to a qualified professional** — no
+mains-work instruction ships from this milestone.
 Exit criteria: safety-review checklist + reviewer onboarding documented; ≥ 5 medium-risk
 (power-tool/injury-risk) entries shipped, each hazard-first and safety-reviewed; CI rule enforces
 "medium-risk ⇒ safety section + recorded safety reviewer."
@@ -250,12 +314,19 @@ backlog of sized-but-unscheduled work, and a complete example Task JSON for the 
 
 ## Governance, roles & stakeholders
 
-- **Maintainer (Owner):** TBD — owns the schema, style/safety guides, release cadence, and the
-  Definition of Shipped.
+- **Maintainer (Owner):** TBD — **TO BE SECURED**; owns the schema, style/safety guides, release
+  cadence, and the Definition of Shipped. **Hard gate: this role must be filled before M0 exit**
+  (M0 cannot be declared done with an unnamed owner); **target date to name the Owner: 2026-07-12.**
 - **Editorial reviewers (rotation):** review entries for clarity, completeness, schema validity,
   citations, and original-media compliance. Author ≠ reviewer.
-- **Safety reviewer(s):** competent in the relevant tool/area; mandatory gate for medium-risk
-  entries. TO BE SECURED (may overlap with partner staff — e.g. a makerspace shop lead).
+- **Safety reviewer(s):** **TO BE SECURED.** Competency standard: demonstrable hands-on competence
+  in the relevant tool/area evidenced by **one of** — a recognized trade qualification or
+  certification (e.g. licensed electrician for electrical-adjacent content), documented vocational/
+  shop-instruction experience, or a relevant manufacturer/OSHA-HSE safety credential. Mandatory
+  gate for medium-risk entries; **high-risk content requires a credentialed expert** (see expert
+  reviewers). **Conflict-of-interest rule: the author of an entry may never be its own safety (or
+  editorial) reviewer** — safety sign-off must come from an independent competent reviewer, even
+  where the reviewer overlaps with partner staff (e.g. a makerspace shop lead).
 - **Steward (last-mile owner):** ensures published entries actually reach beneficiaries and that
   partner adoption/feedback is collected. TO BE SECURED.
 - **Partner / requestor:** education/makerspace/library/vocational org. TO BE SECURED.
@@ -281,8 +352,9 @@ backlog of sized-but-unscheduled work, and a complete example Task JSON for the 
 | Risk | Likelihood | Impact | Mitigation | Owner |
 | --- | --- | --- | --- | --- |
 | Unsafe/incomplete technique in a medium-risk entry causes injury | Low | High | Mandatory safety reviewer for medium-risk; hazard-first format enforced as data + CI; defer high-stakes tasks to professionals | Safety reviewer |
-| Media with unclear/incompatible license slips in | Medium | High | Original-art default; CI requires license field; human spot-check of any non-original asset; record provenance | Maintainer |
-| No partner secured → Definition of Shipped not met | Medium | High | Start outreach in M0/M1; treat as tracked dependency; set `verifiedNeed=false` until confirmed | Steward |
+| Media with unclear/incompatible license slips in | Medium | High | Original-art default; schema-enforced closed license allow-list (off-list/blank fails CI); **mandatory** human source-URL verification of every non-original asset; record provenance | Maintainer |
+| No partner secured → Definition of Shipped not met | Medium | High | Start outreach in M0/M1; **post-M1 go/no-go** before M2 site build; **fallback "delivered" = schema-valid corpus + CC-BY dataset** if no partner; treat as tracked dependency; `verifiedNeed=false` until confirmed | Steward |
+| Safety-review throughput bottleneck stalls medium-risk track | Medium | Medium | Throughput SLA (target ≥ 3 entries/wk, ≤ 5-business-day turnaround); throttle medium-risk authoring to reviewer capacity rather than queuing unreviewed work; electrical cut-line keeps mains/gas/structural out of the medium queue | Safety reviewer |
 | Inconsistent quality across many fan-out authors | Medium | Medium | Strict schema + style/safety guides + template; reviewer-not-author rule; CI lint | Maintainer |
 | Scope creep into buying guides / model-specific repair | Medium | Medium | Explicit non-goals; review rejects out-of-scope entries | Maintainer |
 | Refusal-worthy content requested (guard removal, weapons) | Low | High | Guardrail refusal + flag; documented in style/safety guide | All authors/reviewers |
@@ -318,12 +390,19 @@ backlog of sized-but-unscheduled work, and a complete example Task JSON for the 
 
 1. **Partner:** which education/makerspace/library/vocational org adopts the atlas first?
    (Blocks the Definition of Shipped.)
-2. **SSG choice:** Astro vs Eleventy vs other — decide on accessibility, build simplicity, and
-   maintenance burden.
+2. **SSG choice:** Astro vs Eleventy vs other — **resolved by a short M0/M1 spike**, not deferred
+   into M2. Explicit decision criteria, ranked: (a) WCAG-AA support out of the box, (b) build
+   determinism/reproducibility, (c) dependency count / supply-chain footprint, (d) maintenance
+   burden & community longevity. **Decision deadline: before M2 site build begins** (target
+   end of M1).
 3. **Authoring format:** structured JSON directly, or Markdown-with-front-matter compiled to JSON?
+   **Decided in M0** (before seed authoring) because the schema, validation tooling, and authoring
+   workflow all depend on it — not left open.
 4. **Safety reviewer sourcing:** recruit independently or via the partner's shop staff?
 5. **Where exactly is the medium/high line** for borderline entries (e.g. ladders, mains
-   electrical) — needs a written rubric in the safety guide.
+   electrical) — needs a written rubric in the safety guide. The rubric is now a **hard predecessor
+   of the schema task** (the schema encodes the boundary + gas/mains/structural auto-escalation),
+   so it must be settled before schema finalization rather than treated as a loose open item.
 6. **Localization:** is multi-language a future phase, and does the schema need to anticipate it
    now?
 7. **Contribution model:** if/when external contributions open, what review scaling is needed?
