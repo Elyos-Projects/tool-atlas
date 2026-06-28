@@ -1,0 +1,29 @@
+{
+  "id": "tool-cordless-drill-driver",
+  "title": "Atlas entry: cordless drill/driver",
+  "project": "tool-atlas",
+  "type": "writing",
+  "lane": "donated",
+  "priority": "medium",
+  "domain": [
+    "education",
+    "practical-skills"
+  ],
+  "riskTier": "medium",
+  "urgent": false,
+  "deliverable": "document",
+  "tokenEstimate": "small",
+  "status": "open",
+  "context": "Open, structured reference so anyone can learn to use a cordless drill/driver safely. Original text + original/openly-licensed diagram only (record provenance). Power tool / injury risk — lead with hazards and PPE; requires a safety reviewer.",
+  "objective": "Write the tool-atlas entry for \"cordless drill/driver\": purpose, when to use it, safe technique, common mistakes, and care/maintenance.",
+  "acceptanceCriteria": [
+    "Entry covers purpose, when-to-use, step-by-step safe technique, common mistakes, care",
+    "Technique verified against >=2 authoritative sources (cited)",
+    "Leads with hazards + required PPE; reviewed by a competent safety reviewer"
+  ],
+  "resources": [],
+  "output": "/output/tool-cordless-drill-driver.md",
+  "requestor": "TO BE SECURED",
+  "verifiedNeed": false,
+  "outputLicense": "CC-BY-4.0"
+}

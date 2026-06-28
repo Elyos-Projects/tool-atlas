@@ -1,0 +1,29 @@
+{
+  "id": "tool-nail-set",
+  "title": "Atlas entry: nail set",
+  "project": "tool-atlas",
+  "type": "writing",
+  "lane": "donated",
+  "priority": "medium",
+  "domain": [
+    "education",
+    "practical-skills"
+  ],
+  "riskTier": "low",
+  "urgent": false,
+  "deliverable": "document",
+  "tokenEstimate": "small",
+  "status": "open",
+  "context": "Open, structured reference so anyone can learn to use a nail set safely. Original text + original/openly-licensed diagram only (record provenance).",
+  "objective": "Write the tool-atlas entry for \"nail set\": purpose, when to use it, safe technique, common mistakes, and care/maintenance.",
+  "acceptanceCriteria": [
+    "Entry covers purpose, when-to-use, step-by-step safe technique, common mistakes, care",
+    "Technique verified against >=2 authoritative sources (cited)",
+    "Plain, beginner-friendly language"
+  ],
+  "resources": [],
+  "output": "/output/tool-nail-set.md",
+  "requestor": "TO BE SECURED",
+  "verifiedNeed": false,
+  "outputLicense": "CC-BY-4.0"
+}

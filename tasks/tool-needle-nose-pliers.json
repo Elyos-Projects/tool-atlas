@@ -1,0 +1,29 @@
+{
+  "id": "tool-needle-nose-pliers",
+  "title": "Atlas entry: needle-nose pliers",
+  "project": "tool-atlas",
+  "type": "writing",
+  "lane": "donated",
+  "priority": "medium",
+  "domain": [
+    "education",
+    "practical-skills"
+  ],
+  "riskTier": "low",
+  "urgent": false,
+  "deliverable": "document",
+  "tokenEstimate": "small",
+  "status": "open",
+  "context": "Open, structured reference so anyone can learn to use a needle-nose pliers safely. Original text + original/openly-licensed diagram only (record provenance).",
+  "objective": "Write the tool-atlas entry for \"needle-nose pliers\": purpose, when to use it, safe technique, common mistakes, and care/maintenance.",
+  "acceptanceCriteria": [
+    "Entry covers purpose, when-to-use, step-by-step safe technique, common mistakes, care",
+    "Technique verified against >=2 authoritative sources (cited)",
+    "Plain, beginner-friendly language"
+  ],
+  "resources": [],
+  "output": "/output/tool-needle-nose-pliers.md",
+  "requestor": "TO BE SECURED",
+  "verifiedNeed": false,
+  "outputLicense": "CC-BY-4.0"
+}
