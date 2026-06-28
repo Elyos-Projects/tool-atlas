@@ -5,7 +5,12 @@
   "type": "design-spec",
   "lane": "donated",
   "priority": "high",
-  "domain": ["education", "practical-skills", "open-reference", "accessibility"],
+  "domain": [
+    "education",
+    "practical-skills",
+    "open-reference",
+    "accessibility"
+  ],
   "riskTier": "low",
   "urgent": false,
   "deliverable": "pr",
@@ -25,7 +30,7 @@
     "C:\\code\\elyos\\packages\\schema\\src\\schemas.ts",
     "C:\\code\\elyos\\planning\\projects\\tool-atlas\\PLAN.md"
   ],
-  "output": "A merged PR adding the atlas entry JSON Schema, AJV-based validation script, and CI wiring, with the schema documented in the repo.",
+  "output": "/schema/atlas-entry.schema.json",
   "requestor": "",
   "verifiedNeed": false,
   "outputLicense": "MIT"
